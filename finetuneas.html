@@ -679,18 +679,20 @@
     function changeTime(evt, step) {
         var idx = getID(evt.target.id);
         if (evt.target.id.indexOf("begin") > -1) {
+			const roundedTimeValue = roundTimeValue(fragments[idx].begin + step);
 			if (!event.altKey && idx > 0){
-				changeEndTime(idx - 1, step);
+				changeEndTime(idx - 1, roundedTimeValue);
 				updateWaveform(idx - 1, "end");
 			}
-			changeBeginTime(idx, step);
+			changeBeginTime(idx, roundedTimeValue);
 			updateWaveform(idx);
 		} else {
+			const roundedTimeValue = roundTimeValue(fragments[idx].end + step);
 			if (!event.altKey && idx < fragments.length - 1){
-				changeBeginTime(idx + 1, step);
+				changeBeginTime(idx + 1, roundedTimeValue);
 				updateWaveform(idx + 1);
 			}
-			changeEndTime(idx, step);
+			changeEndTime(idx, roundedTimeValue);
 			updateWaveform(idx, "end");
 		}
     }
@@ -708,9 +710,9 @@
 		});
 	}
 	
-    function changeBeginTime(i, step) {
+    function changeBeginTime(i, roundedTimeValue) {
 		/* increase/decrease begin*/
-		fragments[i].begin = roundTimeValue(fragments[i].begin + step);
+		fragments[i].begin = roundedTimeValue;
 		if (fragments[i].begin < 0) {
 			fragments[i].begin = 0.00;
 		}
@@ -720,9 +722,9 @@
 		playOverlay(0);
     }
 	
-    function changeEndTime(i, step) {
+    function changeEndTime(i, roundedTimeValue) {
 		/* increase/decrease begin*/
-		fragments[i].end = roundTimeValue(fragments[i].end + step);
+		fragments[i].end = roundedTimeValue;
 		if (fragments[i].end < 0) {
 			fragments[i].end = 0.00;
 		}
