@@ -9,6 +9,8 @@
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/2.0.5/wavesurfer.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/2.0.5/plugin/wavesurfer.regions.min.js"></script>
 </head>
 
 <body>
@@ -130,6 +132,8 @@
                          global variables and constants
                         */
     var fragments = [];
+    var wavesurfers = [];
+    var regions = [];
     var currentIndex = 0;
     var audioElement = document.getElementById("audioplayer");
     var ainfo = "";
@@ -389,6 +393,8 @@
 
     function prepareControls() {
         // add event listeners
+		wavesurfers = [];
+		regions = [];
         for (var i = 0; i < fragments.length; i++) {
             if (showID) {
                 document.getElementById(getStringID(i, "id")).addEventListener("click", fragmentClick);
@@ -403,6 +409,36 @@
 
             document.getElementById(getStringID(i, "increase", "end")).addEventListener("click", increaseClick);
             document.getElementById(getStringID(i, "decrease", "end")).addEventListener("click", decreaseClick);
+			
+			const wavesurfer = WaveSurfer.create({
+				container: '#' + getStringID(i, "waveform"),
+				height: 50,
+				barWidth: 5,
+				normalize: true,
+				hideScrollbar: true,
+				interact: false,
+				plugins: [
+					WaveSurfer.regions.create()
+				]
+			});
+			wavesurfers.push(wavesurfer);
+			regions.push({});
+			wavesurfer.load(audioElement.getAttribute("src"));
+			const offset = parseFloat(document.getElementById(getStringID(i, "time", "begin")).text);
+			const totalLen = fragments[fragments.length - 1]['end'];
+			const idx = i;
+			wavesurfer.on('ready', function () {
+				wavesurfer.seekAndCenter(offset / totalLen);
+				const region = wavesurfer.addRegion({
+					start: fragments[idx]['begin'],
+					end: fragments[idx]['end'],
+					resize: false,
+					drag: false,
+					color: 'hsla(200, 50%, 70%, 0.4)'
+				});
+				regions[idx] = region;
+				wavesurfer.zoom(150);
+			});
         }
         document.getElementById("stop").addEventListener("click", stopOverlay);
         document.getElementById("buttonShowID").addEventListener("click", changeShowID);
@@ -534,6 +570,9 @@
         if (element == "decrease") {
             return ("t" + i + "dec" + segment_position);
         }
+        if (element == "waveform") {
+            return ("w" + i);
+        }
         return ("" + i);
     }
 
@@ -547,6 +586,8 @@
         s = s.replace("f", "");
         s = s.replace("end", "");
         s = s.replace("begin", "");
+        s = s.replace("wt", "");
+        s = s.replace("w", "");
         return parseInt(s);
     }
 
@@ -569,7 +610,7 @@
             if (showID) {
                 row += '<div class="col-2" id="' + getStringID(i, "id") + '">' + id + '<\/div>';
             }
-            row += '<div class="col" style="display: table-cell; vertical-align: middle;" id="' + getStringID(i, "cell") + '"><a class="text" id="' + getStringID(i, "text") + '">' + text + '<\/a><\/div>';
+            row += '<div class="col" style="display: table-cell; vertical-align: middle;" id="' + getStringID(i, "cell") + '"><div id="' + getStringID(i, "waveform") + '"></div><a class="text" id="' + getStringID(i, "text") + '">' + text + '<\/a><\/div>';
             row += '<div class="edit col-4">';
 
             row += '<div style="display:block;margin-bottom:10px;">';
@@ -639,17 +680,34 @@
     function changeTime(evt, step) {
         var idx = getID(evt.target.id);
         if (evt.target.id.indexOf("begin") > -1) {
-		if (!event.altKey && idx > 0){
-			changeEndTime(idx - 1, step)
+			if (!event.altKey && idx > 0){
+				changeEndTime(idx - 1, step);
+				updateWaveform(idx - 1);
+			}
+			changeBeginTime(idx, step);
+			updateWaveform(idx);
+		} else {
+			if (!event.altKey && idx < fragments.length - 1){
+				changeBeginTime(idx + 1, step);
+				updateWaveform(idx + 1);
+			}
+			changeEndTime(idx, step);
+			updateWaveform(idx);
 		}
-		changeBeginTime(idx, step);
-	} else {
-		if (!event.altKey && idx < fragments.length - 1){
-			changeBeginTime(idx + 1, step)
-		}
-		changeEndTime(idx, step);
-	}
     }
+	
+	function updateWaveform(idx){
+		const offset = parseFloat(document.getElementById(getStringID(idx, "time", "begin")).text);
+		const totalLen = fragments[fragments.length - 1]['end'];
+		const wavesurfer = wavesurfers[idx];
+		wavesurfer.seekAndCenter(offset / totalLen);
+		
+		const region = regions[idx];
+		region.update({
+			start: parseFloat(document.getElementById(getStringID(idx, "time", "begin")).text),
+			end: parseFloat(document.getElementById(getStringID(idx, "time", "end")).text)
+		});
+	}
 	
     function changeBeginTime(i, step) {
 		/* increase/decrease begin*/
