@@ -2,7 +2,7 @@
 
 **finetuneas** is a simple HTML interface for fine tuning sync maps output by [aeneas](https://github.com/readbeyond/aeneas)
 
-![alt text](https://github.com/klintan/finetuneas/raw/master/screenshot.png "Finetuneas screenshot")
+![alt text](https://github.com/cobr123/finetuneas/raw/master/screenshot.png "Finetuneas screenshot")
 
 
 ## Usage
