@@ -146,7 +146,7 @@
     /*
      do not remove the following lines starting with AENEAS_REPLACE_
     */
-    var timeStep = 0.1;
+    var timeStep = 1;
     // AENEAS_REPLACE_TIME_STEP
     var showID = false;
     // AENEAS_REPLACE_SHOW_ID
@@ -617,40 +617,65 @@
     }
 
     function increaseClick(evt) {
-        changeTime(evt, timeStep);
+		if (event.ctrlKey) {
+			changeTime(evt, timeStep * 10);
+		} else if (event.shiftKey) {
+			changeTime(evt, timeStep * 0.1);
+		} else {
+			changeTime(evt, timeStep);
+		}
     }
 
     function decreaseClick(evt) {
-        changeTime(evt, -timeStep);
+		if (event.ctrlKey) {
+			changeTime(evt, -timeStep * 10);
+		} else if (event.shiftKey) {
+			changeTime(evt, -timeStep * 0.1);
+		} else {
+			changeTime(evt, -timeStep);
+		}
     }
 
     function changeTime(evt, step) {
-        var i = getID(evt.target.id);
+        var idx = getID(evt.target.id);
         if (evt.target.id.indexOf("begin") > -1) {
-            /* increase/decrease begin*/
-            fragments[i].begin = roundTimeValue(fragments[i].begin + step);
-            if (fragments[i].begin < 0) {
-                fragments[i].begin = 0.00;
-            }
-            updateTime(i, "begin");
-            highlight(CLEAR);
-            currentIndex = i;
-            playOverlay(0);
-        } else {
-            /* increase/decrease begin*/
-            fragments[i].end = roundTimeValue(fragments[i].end + step);
-            if (fragments[i].end < 0) {
-                fragments[i].end = 0.00;
-            }
-            /*if (i > 0) {
-                fragments[i - 1].end = fragments[i].begin;
-            }*/
-            updateTime(i, "end");
-            highlight(CLEAR);
-            currentIndex = i;
-            playOverlay(0);
-        }
-
+			changeBeginTime(idx, step);
+			if (!event.altKey && idx > 0){
+				changeEndTime(idx - 1, step)
+			}
+		} else {
+			changeEndTime(idx, step);
+			if (!event.altKey && idx < fragments.length - 1){
+				changeBeginTime(idx + 1, step)
+			}
+		}
+    }
+	
+    function changeBeginTime(i, step) {
+		/* increase/decrease begin*/
+		fragments[i].begin = roundTimeValue(fragments[i].begin + step);
+		if (fragments[i].begin < 0) {
+			fragments[i].begin = 0.00;
+		}
+		updateTime(i, "begin");
+		highlight(CLEAR);
+		currentIndex = i;
+		playOverlay(0);
+    }
+	
+    function changeEndTime(i, step) {
+		/* increase/decrease begin*/
+		fragments[i].end = roundTimeValue(fragments[i].end + step);
+		if (fragments[i].end < 0) {
+			fragments[i].end = 0.00;
+		}
+		/*if (i > 0) {
+			fragments[i - 1].end = fragments[i].begin;
+		}*/
+		updateTime(i, "end");
+		highlight(CLEAR);
+		currentIndex = i;
+		playOverlay(0);
     }
 
     function downloadData() {
