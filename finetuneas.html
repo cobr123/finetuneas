@@ -681,7 +681,7 @@
         if (evt.target.id.indexOf("begin") > -1) {
 			if (!event.altKey && idx > 0){
 				changeEndTime(idx - 1, step);
-				updateWaveform(idx - 1);
+				updateWaveform(idx - 1, "end");
 			}
 			changeBeginTime(idx, step);
 			updateWaveform(idx);
