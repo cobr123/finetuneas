@@ -639,16 +639,16 @@
     function changeTime(evt, step) {
         var idx = getID(evt.target.id);
         if (evt.target.id.indexOf("begin") > -1) {
-			changeBeginTime(idx, step);
-			if (!event.altKey && idx > 0){
-				changeEndTime(idx - 1, step)
-			}
-		} else {
-			changeEndTime(idx, step);
-			if (!event.altKey && idx < fragments.length - 1){
-				changeBeginTime(idx + 1, step)
-			}
+		if (!event.altKey && idx > 0){
+			changeEndTime(idx - 1, step)
 		}
+		changeBeginTime(idx, step);
+	} else {
+		if (!event.altKey && idx < fragments.length - 1){
+			changeBeginTime(idx + 1, step)
+		}
+		changeEndTime(idx, step);
+	}
     }
 	
     function changeBeginTime(i, step) {
