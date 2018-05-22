@@ -691,12 +691,12 @@
 				updateWaveform(idx + 1);
 			}
 			changeEndTime(idx, step);
-			updateWaveform(idx);
+			updateWaveform(idx, "end");
 		}
     }
 	
-	function updateWaveform(idx){
-		const offset = parseFloat(document.getElementById(getStringID(idx, "time", "begin")).text);
+	function updateWaveform(idx, locateTo = "begin"){
+		const offset = parseFloat(document.getElementById(getStringID(idx, "time", locateTo)).text);
 		const totalLen = fragments[fragments.length - 1]['end'];
 		const wavesurfer = wavesurfers[idx];
 		wavesurfer.seekAndCenter(offset / totalLen);
