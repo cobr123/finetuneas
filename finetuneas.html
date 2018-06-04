@@ -36,22 +36,9 @@
                 <a class="pause" id="stop">ıı</a>
             </div>
             <!-- END player -->
-
-            <!-- BEGIN loadbuttons -->
-            <!-- do not remove the next line -->
-            <!-- AENEAS_REPLACE_COMMENT_BEGIN -->
-            <div id="step1" style="display:inline;">
-                <p class="file-label">Audio:</p>
-                <input type="file" id="audioinput" accept="audio/*" autocomplete="off" style="width:250px;"/>
-            </div>
-            <!--<div id="fileinfo"></div>-->
-            <div id="step2" style="display:inline;">
-                <p class="file-label">JSON:</p>
-                <input type="file" id="fileinput" accept=".json" autocomplete="off" style="width:250px;"/>
-            </div>
-            <!-- AENEAS_REPLACE_COMMENT_END -->
-            <!-- do not remove the line above -->
-            <!-- END loadbuttons -->
+			
+			<div style="display:block; position: fixed; top: 0; left: 400px; height: 40px; width: 60%;" id="waveform"></div>
+			
             <!-- BEGIN loadauto -->
             <!-- do not remove the next line -->
             <!-- AENEAS_REPLACE_UNCOMMENT_BEGIN
@@ -67,14 +54,29 @@
     <div class="row b-content">
         <div class="col-3">
             <div class="settings">
+            <!-- BEGIN loadbuttons -->
+            <!-- do not remove the next line -->
+            <!-- AENEAS_REPLACE_COMMENT_BEGIN -->
+            <div id="step1" style="display:inline;">
+                <p class="file-label">Audio:</p>
+                <input type="file" id="audioinput" accept="audio/*" autocomplete="off" style="width:250px;"/>
+            </div>
+            <!--<div id="fileinfo"></div>-->
+            <div id="step2" style="display:inline;">
+                <p class="file-label">JSON:</p>
+                <input type="file" id="fileinput" accept=".json" autocomplete="off" style="width:250px;"/>
+            </div>
+            <!-- AENEAS_REPLACE_COMMENT_END -->
+            <!-- do not remove the line above -->
+            <!-- END loadbuttons -->
                 <label for="timeStep" style="display:block">Time increment (s):</label>
                 <input id="timeStep" type="number" min="0.010" step="0.010" value="0.100" style="display:block"/>
                 <label for="buttonShowID" style="display:block">Show ID:</label>
                 <button class="btn btn-primary btn-sm" id="buttonShowID" style="display:block">OFF</button>
                 <label for="buttonChangeAdjacentFragmentID" style="display:block">Change adjacent:</label>
                 <button class="btn btn-primary btn-sm" id="buttonChangeAdjacentFragmentID" style="display:block">ON</button>
-                <label for="buttonShowWaveForm" style="display:block">Show waveform:</label>
-                <button class="btn btn-primary btn-sm" id="buttonShowWaveForm" style="display:block">ON</button>
+                <!-- <label for="buttonShowWaveForm" style="display:block">Show waveform:</label> -->
+                <!-- <button class="btn btn-primary btn-sm" id="buttonShowWaveForm" style="display:block">ON</button> -->
                 <label for="alignText" style="display:block">Text alignment:</label>
                 <select name="alignText" id="alignText" style="display:block">
                     <option value="left">Left</option>
@@ -155,7 +157,7 @@
      do not remove the following lines starting with AENEAS_REPLACE_
     */
 	var changeAdjacentFragment = false;
-	var showWaveForm = false;
+	var showWaveForm = true;
     var timeStep = 0.1;
     // AENEAS_REPLACE_TIME_STEP
     var showID = false;
@@ -417,43 +419,11 @@
 
             document.getElementById(getStringID(i, "increase", "end")).addEventListener("click", increaseClick);
             document.getElementById(getStringID(i, "decrease", "end")).addEventListener("click", decreaseClick);
-			
-			if(showWaveForm){
-				const wavesurfer = WaveSurfer.create({
-					container: '#' + getStringID(i, "waveform"),
-					height: 50,
-					barWidth: 5,
-					normalize: true,
-					hideScrollbar: true,
-					interact: false,
-					plugins: [
-						WaveSurfer.regions.create()
-					]
-				});
-				wavesurfers.push(wavesurfer);
-				regions.push({});
-				wavesurfer.load(audioElement.getAttribute("src"));
-				const offset = parseFloat(document.getElementById(getStringID(i, "time", "begin")).text);
-				const totalLen = fragments[fragments.length - 1]['end'];
-				const idx = i;
-				wavesurfer.on('ready', function () {
-					wavesurfer.seekAndCenter(offset / totalLen);
-					const region = wavesurfer.addRegion({
-						start: fragments[idx]['begin'],
-						end: fragments[idx]['end'],
-						resize: false,
-						drag: false,
-						color: 'hsla(200, 50%, 70%, 0.4)'
-					});
-					regions[idx] = region;
-					wavesurfer.zoom(150);
-				});
-			}
         }
         document.getElementById("stop").addEventListener("click", stopOverlay);
         document.getElementById("buttonShowID").addEventListener("click", changeShowID);
         document.getElementById("buttonChangeAdjacentFragmentID").addEventListener("click", changeChangeAdjacentFragmentID);
-        document.getElementById("buttonShowWaveForm").addEventListener("click", changeShowWaveForm);
+        //document.getElementById("buttonShowWaveForm").addEventListener("click", changeShowWaveForm);
         document.getElementById("alignText").addEventListener("change", changeAlignText);
         document.getElementById("buttonContinuousPlay").addEventListener("click", changeContinuousPlay);
         document.getElementById("buttonTimeFormat").addEventListener("click", changeTimeFormat);
@@ -631,7 +601,7 @@
             if (showID) {
                 row += '<div class="col-2" id="' + getStringID(i, "id") + '">' + id + '<\/div>';
             }
-            row += '<div class="col" style="display: table-cell; vertical-align: middle;" id="' + getStringID(i, "cell") + '"><div id="' + getStringID(i, "waveform") + '"></div><a class="text" id="' + getStringID(i, "text") + '">' + text + '<\/a><\/div>';
+            row += '<div class="col" style="display: table-cell; vertical-align: middle;" id="' + getStringID(i, "cell") + '"><a class="text" id="' + getStringID(i, "text") + '">' + text + '<\/a><\/div>';
             row += '<div class="edit col-4">';
 
             row += '<div style="display:block;margin-bottom:10px;">';
@@ -677,7 +647,7 @@
         currentIndex = getID(evt.target.id);
         playOverlay(0);
     }
-
+	
     function increaseClick(evt) {
 		if (event.ctrlKey) {
 			changeTime(evt, timeStep * 10);
@@ -720,16 +690,35 @@
 		}
     }
 	
+	const wavesurfer = WaveSurfer.create({
+		container: '#waveform',
+		height: 50,
+		barWidth: 5,
+		normalize: true,
+		hideScrollbar: true,
+		interact: false,
+		plugins: [
+			WaveSurfer.regions.create()
+		]
+	});
+	const region = wavesurfer.addRegion({
+		resize: false,
+		drag: false,
+		color: 'hsla(200, 50%, 70%, 0.4)'
+	});
 	function updateWaveform(idx, locateTo = "begin"){
+		if(!showWaveForm){
+			return;
+		}
+		wavesurfer.load(audioElement.getAttribute("src"));
 		const offset = parseFloat(document.getElementById(getStringID(idx, "time", locateTo)).text);
 		const totalLen = fragments[fragments.length - 1]['end'];
-		const wavesurfer = wavesurfers[idx];
-		wavesurfer.seekAndCenter(offset / totalLen);
 		
-		const region = regions[idx];
-		region.update({
-			start: parseFloat(document.getElementById(getStringID(idx, "time", "begin")).text),
-			end: parseFloat(document.getElementById(getStringID(idx, "time", "end")).text)
+		wavesurfer.on('ready', function () {
+			wavesurfer.seekAndCenter(offset / totalLen);
+			region.start = parseFloat(document.getElementById(getStringID(idx, "time", "begin")).text);
+			region.end   = parseFloat(document.getElementById(getStringID(idx, "time", "end")).text);
+			wavesurfer.zoom(150);
 		});
 	}
 	
@@ -1035,6 +1024,7 @@
     }
 
     function playOverlay(inc) {
+		updateWaveform(currentIndex);
         highlight(CLEAR);
         if (currentIndex + inc < fragments.length) {
             currentIndex += inc;
