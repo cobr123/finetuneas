@@ -369,7 +369,10 @@
         }
     }
 
+	var wavesurfer_loaded = false;
+	
     function loadAudio(audioFilePath) {
+		wavesurfer_loaded = false;
         audioElement.setAttribute("src", audioFilePath);
     }
 
@@ -706,20 +709,30 @@
 		drag: false,
 		color: 'hsla(200, 50%, 70%, 0.4)'
 	});
+	
 	function updateWaveform(idx, locateTo = "begin"){
 		if(!showWaveForm){
 			return;
 		}
-		wavesurfer.load(audioElement.getAttribute("src"));
+		
+		if(wavesurfer_loaded){
+			updateLoadedWaveform(idx, locateTo);
+		} else {
+			wavesurfer.load(audioElement.getAttribute("src"));
+			wavesurfer.on('ready', function () {
+				wavesurfer_loaded = true;
+				updateLoadedWaveform(idx, locateTo);
+			});
+		}
+	}
+	function updateLoadedWaveform(idx, locateTo = "begin"){
 		const offset = parseFloat(document.getElementById(getStringID(idx, "time", locateTo)).text);
 		const totalLen = fragments[fragments.length - 1]['end'];
 		
-		wavesurfer.on('ready', function () {
-			wavesurfer.seekAndCenter(offset / totalLen);
-			region.start = parseFloat(document.getElementById(getStringID(idx, "time", "begin")).text);
-			region.end   = parseFloat(document.getElementById(getStringID(idx, "time", "end")).text);
-			wavesurfer.zoom(150);
-		});
+		wavesurfer.seekAndCenter(offset / totalLen);
+		region.start = parseFloat(document.getElementById(getStringID(idx, "time", "begin")).text);
+		region.end   = parseFloat(document.getElementById(getStringID(idx, "time", "end")).text);
+		wavesurfer.zoom(150);
 	}
 	
     function changeBeginTime(i, roundedTimeValue) {
