@@ -73,6 +73,8 @@
                 <button class="btn btn-primary btn-sm" id="buttonShowID" style="display:block">OFF</button>
                 <label for="buttonChangeAdjacentFragmentID" style="display:block">Change adjacent:</label>
                 <button class="btn btn-primary btn-sm" id="buttonChangeAdjacentFragmentID" style="display:block">ON</button>
+                <label for="buttonShowWaveForm" style="display:block">Show waveform:</label>
+                <button class="btn btn-primary btn-sm" id="buttonShowWaveForm" style="display:block">ON</button>
                 <label for="alignText" style="display:block">Text alignment:</label>
                 <select name="alignText" id="alignText" style="display:block">
                     <option value="left">Left</option>
@@ -153,6 +155,7 @@
      do not remove the following lines starting with AENEAS_REPLACE_
     */
 	var changeAdjacentFragment = false;
+	var showWaveForm = false;
     var timeStep = 1;
     // AENEAS_REPLACE_TIME_STEP
     var showID = false;
@@ -214,6 +217,7 @@
             document.getElementById("timeStep").value = timeStep;
             setButtonText("buttonShowID", showID, "ON", "OFF");
             setButtonText("buttonChangeAdjacentFragmentID", changeAdjacentFragment, "ON", "OFF");
+            setButtonText("buttonShowWaveForm", showWaveForm, "ON", "OFF");
             document.getElementById("alignText").value = alignText;
             document.getElementById("playbackRate").value = playbackRate;
             setButtonText("buttonContinuousPlay", continuousPlay, "ON", "OFF");
@@ -414,39 +418,42 @@
             document.getElementById(getStringID(i, "increase", "end")).addEventListener("click", increaseClick);
             document.getElementById(getStringID(i, "decrease", "end")).addEventListener("click", decreaseClick);
 			
-			const wavesurfer = WaveSurfer.create({
-				container: '#' + getStringID(i, "waveform"),
-				height: 50,
-				barWidth: 5,
-				normalize: true,
-				hideScrollbar: true,
-				interact: false,
-				plugins: [
-					WaveSurfer.regions.create()
-				]
-			});
-			wavesurfers.push(wavesurfer);
-			regions.push({});
-			wavesurfer.load(audioElement.getAttribute("src"));
-			const offset = parseFloat(document.getElementById(getStringID(i, "time", "begin")).text);
-			const totalLen = fragments[fragments.length - 1]['end'];
-			const idx = i;
-			wavesurfer.on('ready', function () {
-				wavesurfer.seekAndCenter(offset / totalLen);
-				const region = wavesurfer.addRegion({
-					start: fragments[idx]['begin'],
-					end: fragments[idx]['end'],
-					resize: false,
-					drag: false,
-					color: 'hsla(200, 50%, 70%, 0.4)'
+			if(showWaveForm){
+				const wavesurfer = WaveSurfer.create({
+					container: '#' + getStringID(i, "waveform"),
+					height: 50,
+					barWidth: 5,
+					normalize: true,
+					hideScrollbar: true,
+					interact: false,
+					plugins: [
+						WaveSurfer.regions.create()
+					]
 				});
-				regions[idx] = region;
-				wavesurfer.zoom(150);
-			});
+				wavesurfers.push(wavesurfer);
+				regions.push({});
+				wavesurfer.load(audioElement.getAttribute("src"));
+				const offset = parseFloat(document.getElementById(getStringID(i, "time", "begin")).text);
+				const totalLen = fragments[fragments.length - 1]['end'];
+				const idx = i;
+				wavesurfer.on('ready', function () {
+					wavesurfer.seekAndCenter(offset / totalLen);
+					const region = wavesurfer.addRegion({
+						start: fragments[idx]['begin'],
+						end: fragments[idx]['end'],
+						resize: false,
+						drag: false,
+						color: 'hsla(200, 50%, 70%, 0.4)'
+					});
+					regions[idx] = region;
+					wavesurfer.zoom(150);
+				});
+			}
         }
         document.getElementById("stop").addEventListener("click", stopOverlay);
         document.getElementById("buttonShowID").addEventListener("click", changeShowID);
         document.getElementById("buttonChangeAdjacentFragmentID").addEventListener("click", changeChangeAdjacentFragmentID);
+        document.getElementById("buttonShowWaveForm").addEventListener("click", changeShowWaveForm);
         document.getElementById("alignText").addEventListener("change", changeAlignText);
         document.getElementById("buttonContinuousPlay").addEventListener("click", changeContinuousPlay);
         document.getElementById("buttonTimeFormat").addEventListener("click", changeTimeFormat);
@@ -468,6 +475,12 @@
     function changeChangeAdjacentFragmentID() {
         changeAdjacentFragment = !changeAdjacentFragment;
         setButtonText("buttonChangeAdjacentFragmentID", changeAdjacentFragment, "ON", "OFF");
+    }
+    function changeShowWaveForm() {
+        showWaveForm = !showWaveForm;
+        setButtonText("buttonShowWaveForm", showWaveForm, "ON", "OFF");
+        prepareTable();
+        prepareControls();
     }
 
     function changeAlignText() {
